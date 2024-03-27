@@ -1,0 +1,16 @@
+# Ignore files with certain extensions
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore directories
+venv/
+
+# Ignore environment files
+.env
+__pycache__/
