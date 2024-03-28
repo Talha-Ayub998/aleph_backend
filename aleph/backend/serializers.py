@@ -1,14 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from .models import User
 
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'group', 'status', 'created_at', 'last_login']
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    email = serializers.CharField()
     password = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(email=user.email, password=data.get('password'))  # Change to 'email'
-        if not user:
-            raise serializers.ValidationError("Invalid email or password")  # Update error message
-        return user
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Incorrect Credentials")
+
+    def to_representation(self, instance):
+        return UserSerializer(instance).data
+
 

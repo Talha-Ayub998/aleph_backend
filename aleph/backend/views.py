@@ -1,43 +1,23 @@
-from django.contrib.auth import authenticate, login
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from knox.models import AuthToken
 from backend.serializers import LoginSerializer
-from django.contrib.auth.hashers import check_password
+from rest_framework import generics
 
-# class LoginAPIView(APIView):
-#     def post(self, request):
-#         serializer = LoginSerializer(data=request.data)
-#         if serializer.is_valid():
-#             email = serializer.validated_data['email']
-#             password = serializer.validated_data['password']
-#             user = authenticate(request, email=email, password=password)  # Authenticate using email
-#             if user and check_password(password, user.password):
-#                 login(request, user)
-#                 return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-#             else:
-#                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class LoginAPIView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
 
+    def post(self, request, *args, **kwargs):
 
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from backend.models import User  # Import your custom User model
-from backend.serializers import LoginSerializer
+        dic = request.data                                          
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
 
-class LoginAPIView(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('email')
-        user = get_object_or_404(User, email=email)  # Fetch user by email
-        if password == user.password:  # Compare entered password with stored password
-            # Authentication successful
-            # Implement your custom login logic here, if needed
-            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-        else:
-            # Authentication failed due to incorrect password
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+       
+
+        _,token = AuthToken.objects.create(user)
+        return Response({
+            "user": serializer.data,
+            "token": token
+        })
 

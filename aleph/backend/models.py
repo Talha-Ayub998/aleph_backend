@@ -1,9 +1,9 @@
-from django.db import models
-from django.utils import timezone
 import random
-
+from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -25,7 +25,7 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     GROUP_CHOICES = (
         ('review', 'Review'),
         ('admin', 'Admin'),
@@ -43,6 +43,8 @@ class User(AbstractBaseUser):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     last_login = models.DateTimeField(null=True, blank=True)
     password = models.CharField(max_length=128)  # This is the hashed password field
+    is_staff = models.BooleanField(default=False)  # Staff status
+    is_superuser = models.BooleanField(default=False)  # Superuser status
 
     objects = UserManager()
 
@@ -62,6 +64,11 @@ class User(AbstractBaseUser):
 
     class Meta:
         ordering = ['-created_at']
+
+    def has_module_perms(self, app_label):
+        # For simplicity, grant all users access to all modules
+        return True
+
 
 
 class Project(models.Model):

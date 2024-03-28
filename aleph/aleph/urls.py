@@ -20,3 +20,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('backend/', include('backend.urls'))
 ]
+
+admin.site.site_header = "Aleph Admin"
+admin.site.site_title = "Aleph Admin Portal"
+admin.site.index_title = "Welcome to Aleph Backend Portal"
