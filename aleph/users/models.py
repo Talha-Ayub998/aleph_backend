@@ -73,7 +73,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Project(models.Model):
     name = models.CharField(max_length=100)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
+    description = models.CharField(max_length=255)
+    users = models.ManyToManyField('User', related_name='projects')
 
     def __str__(self):
         return self.name
@@ -81,6 +82,7 @@ class Project(models.Model):
 class Document(models.Model):
     file = models.FileField(upload_to='documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='documents')
 
     def __str__(self):
         return str(self.file)

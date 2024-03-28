@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from users.models import User
+from users.models import *
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,4 +21,9 @@ class LoginSerializer(serializers.Serializer):
     def to_representation(self, instance):
         return UserSerializer(instance).data
 
+
+class PageImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PageImage
+        fields = ['id', 'document', 'image']
 
