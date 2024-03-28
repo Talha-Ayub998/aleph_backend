@@ -10,6 +10,8 @@ Thumbs.db
 
 # Ignore directories
 venv/
+page_images/
+documents/
 
 # Ignore environment files
 .env
