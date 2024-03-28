@@ -18,7 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('backend/', include('backend.urls'))
+    path('users/', include('users.urls'))
 ]
 
 admin.site.site_header = "Aleph Admin"
