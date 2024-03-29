@@ -27,3 +27,9 @@ class PageImageSerializer(serializers.ModelSerializer):
         model = PageImage
         fields = ['id', 'document', 'image']
 
+
+
+class PageDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['id', 'file']
