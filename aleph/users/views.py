@@ -63,3 +63,14 @@ class PageDocumentImagesAPIView(APIView):
         queryset = self.get_queryset()
         image_urls = [page_image.image.url for page_image in queryset]
         return JsonResponse({'image_urls': image_urls})
+
+class ProjectCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            # Save the new project
+            project = serializer.save()
+            return Response({'project_id': project.id}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
