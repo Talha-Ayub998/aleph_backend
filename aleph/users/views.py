@@ -26,6 +26,14 @@ class LoginAPIView(generics.GenericAPIView):
             "token": token
         })
 
+class UserCreateAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.create(serializer.validated_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class PageImageView(APIView):
     def get(self, request, image_id):
         # Retrieve the PageImage object
