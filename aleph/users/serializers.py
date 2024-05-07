@@ -30,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
             send_mail(
                 'Your Initial Password',
                 f'Your initial password is: {generated_password}',
-                'admin@example.com',  # Sender's email address
+                'talhaayub998@gmail.com',  # Sender's email address
                 [validated_data['email']],  # Recipient's email address
                 fail_silently=False,
             )
