@@ -26,7 +26,7 @@ class LoginAPIView(generics.GenericAPIView):
             "token": token
         })
 
-class UserDetailsAPIView(APIView):
+class SingleUserDetailsAPIView(APIView):
     def get(self, request, email):
         try:
             user = User.objects.get(email=email)
@@ -35,6 +35,17 @@ class UserDetailsAPIView(APIView):
 
         serializer = UserViewSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class MultipleUserDetailsAPIView(APIView):
+    def get(self):
+        try:
+            user = User.objects.all()
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserViewSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class UserCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):
