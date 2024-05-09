@@ -26,6 +26,16 @@ class LoginAPIView(generics.GenericAPIView):
             "token": token
         })
 
+class UserDetailsAPIView(APIView):
+    def get(self, request, email):
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserViewSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class UserCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
