@@ -38,12 +38,11 @@ class SingleUserDetailsAPIView(APIView):
 
 class MultipleUserDetailsAPIView(APIView):
     def get(self, request):
-        try:
-            user = User.objects.all()
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        users = User.objects.all()
+        if not users:
+            return Response({"error": "No users found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UserViewSerializer(user, many=True)
+        serializer = UserViewSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
