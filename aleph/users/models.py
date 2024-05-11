@@ -1,4 +1,5 @@
 import random
+import string
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import User
@@ -62,8 +63,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
     def _generate_user_id(self):
-        # Generate a random 3-digit ID
-        return str(random.randint(100, 999))
+        while True:
+            # Generate a random 2-digit number
+            number_part = str(random.randint(10, 99))
+
+            # Generate a random alphabet
+            alphabet_part = random.choice(string.ascii_uppercase)
+
+            # Concatenate the number and alphabet parts
+            generated_id = number_part + alphabet_part
+
+            # Check if the generated ID already exists in the database
+            if not User.objects.filter(user_id=generated_id).exists():
+                return generated_id
 
     def __str__(self):
         return f"{self.email}"
