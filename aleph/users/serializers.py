@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate
 from users.models import *
 from django.core.mail import send_mail
 import string
+from django.contrib.auth import get_user_model
+
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
@@ -90,3 +92,9 @@ class PotentialUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PotentialUser
         fields = ['email', 'first_name', 'last_name']
+
+    def validate_email(self, value):
+        User = get_user_model()
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
