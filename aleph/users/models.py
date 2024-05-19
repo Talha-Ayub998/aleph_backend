@@ -88,6 +88,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         return True
 
 
+class PotentialUser(models.Model):
+    email = models.EmailField(max_length=50, unique=True, db_index=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    temporary_password = models.CharField(max_length=128, null=True, blank=True)  # Temporary password before approval
+
+    def generate_temporary_password(self):
+        password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))  # Generate a random password
+        self.temporary_password = password
+        return password
+
+    def __str__(self):
+        return f"{self.email}"
+
 
 class Project(models.Model):
     name = models.CharField(max_length=100)

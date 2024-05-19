@@ -85,3 +85,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'name', 'description']
+
+class PotentialUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PotentialUser
+        fields = ['email', 'first_name', 'last_name']

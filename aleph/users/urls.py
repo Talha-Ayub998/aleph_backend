@@ -14,4 +14,6 @@ urlpatterns = [
     path('api/create_project/', ProjectCreateAPIView.as_view(), name='api-create-project'),
     path('api/download_document/<int:document_id>/', DocumentDownloadAPIView.as_view(), name='api-download-document'),
     path('api/project_documents/<int:project_id>/', ProjectDocumentsAPIView.as_view(), name='api-project-documents'),
+    path('api/signup/', PotentialUserCreateAPIView.as_view(), name='potential-user-signup'),
+    path('api/approve/', ApproveUserAPIView.as_view(), name='approve-user'),
 ]
