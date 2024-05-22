@@ -32,6 +32,15 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+# Company Model
+class Company(models.Model):
+    name = models.CharField(max_length=100)
+    address = models.TextField()
+    is_registered = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
 class User(AbstractBaseUser, PermissionsMixin):
     GROUP_CHOICES = (
         ('review', 'Review'),
@@ -52,6 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=128)  # This is the hashed password field
     is_staff = models.BooleanField(default=False)  # Staff status
     is_superuser = models.BooleanField(default=False)  # Superuser status
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='employees', null=True, blank=True)
 
     objects = UserManager()
 
