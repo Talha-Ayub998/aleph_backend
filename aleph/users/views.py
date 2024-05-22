@@ -10,9 +10,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from mimetypes import guess_type
 from users.ocr import perform_ocr
-from rest_framework import status, permissions
-from .permissions import IsAdminUser
-
+from django.contrib.auth import get_user_model
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -167,3 +165,66 @@ class ProjectDocumentsAPIView(APIView):
 
             return Response(serializer.data)
         return Response({'error': 'Document does not exist against this project'}, status=status.HTTP_404_NOT_FOUND)
+
+class PotentialUserCreateAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = PotentialUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MultiplePotentialDetailsAPIView(APIView):
+    def get(self, request):
+        users = PotentialUser.objects.all()
+        if not users:
+            return Response({"error": "No potential users found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PotentialUserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ApproveUserAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        is_approved = data.get('is_approved')
+        email = data.get('email')
+
+        try:
+            potential_user = PotentialUser.objects.get(email=email)
+        except PotentialUser.DoesNotExist:
+            return Response({'error': 'Potential user not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if is_approved:
+            # Generate a password
+            password = potential_user.generate_temporary_password()
+
+            # Get the User model
+            User = get_user_model()
+
+            # Create the user
+            user = User.objects.create_user(
+                email=potential_user.email,
+                password=password,
+                first_name=potential_user.first_name,
+                last_name=potential_user.last_name,
+                group='admin',  # Default group or customize as needed
+                status='active'
+            )
+
+            # Send email with the generated password
+            send_mail(
+                'Your Initial Password',
+                f'Your initial password is: {password}',
+                'talhaayub998@gmail.com',  # Sender's email address
+                [user.email],  # Recipient's email address
+                fail_silently=False,
+            )
+
+            # Delete the potential user entry
+            potential_user.delete()
+
+            return Response({'message': 'User approved and email sent'}, status=status.HTTP_200_OK)
+        
+        # If not approved, delete the potential user entry
+        potential_user.delete()
+        return Response({'message': 'User not approved and potential user entry deleted'}, status=status.HTTP_200_OK)
