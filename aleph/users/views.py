@@ -10,6 +10,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from mimetypes import guess_type
 from users.ocr import perform_ocr
+from rest_framework import status, permissions
+from .permissions import IsAdminUser
+
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -47,6 +50,7 @@ class MultipleUserDetailsAPIView(APIView):
 
 
 class UserCreateAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
