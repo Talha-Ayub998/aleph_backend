@@ -11,6 +11,8 @@ from rest_framework import generics
 from mimetypes import guess_type
 from users.ocr import perform_ocr
 from django.contrib.auth import get_user_model
+from rest_framework import status, permissions
+from .permissions import IsAdminUser
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
