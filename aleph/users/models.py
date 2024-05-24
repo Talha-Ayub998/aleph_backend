@@ -36,7 +36,7 @@ class UserManager(BaseUserManager):
 class Company(models.Model):
     name = models.CharField(max_length=255)
     address = models.TextField()
-    contact = models.CharField(max_length=30)
+    contact = models.CharField(max_length=30, default="0")  # Replace "default_contact_value" with your desired default value
     is_registered = models.BooleanField(default=False)
 
     def __str__(self):
