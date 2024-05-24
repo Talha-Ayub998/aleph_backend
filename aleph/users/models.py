@@ -34,9 +34,9 @@ class UserManager(BaseUserManager):
 
 # Company Model
 class Company(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     address = models.TextField()
-    is_registered = models.BooleanField(default=False)
+    contact = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name

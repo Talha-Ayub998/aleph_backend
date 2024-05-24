@@ -230,3 +230,22 @@ class ApproveUserAPIView(APIView):
         # If not approved, delete the potential user entry
         potential_user.delete()
         return Response({'message': 'User not approved and potential user entry deleted'}, status=status.HTTP_200_OK)
+
+
+class CompanyCreateAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        company_serializer = CompanySerializer(data=request.data)
+        if company_serializer.is_valid():
+            company = company_serializer.save()
+            user_email = request.data.get('email')
+
+            try:
+                user = User.objects.get(email=user_email)
+                user.company = company
+                user.save()
+                return Response(company_serializer.data, status=status.HTTP_201_CREATED)
+            except User.DoesNotExist:
+                company.delete()  # Clean up the created company if the user does not exist
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(company_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
