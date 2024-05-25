@@ -13,6 +13,7 @@ from users.ocr import perform_ocr
 from django.contrib.auth import get_user_model
 from rest_framework import status, permissions
 from .permissions import IsAdminUser
+from django.utils import timezone
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -22,6 +23,8 @@ class LoginAPIView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
+        user.last_login = timezone.now()
+        user.save()
 
         _,token = AuthToken.objects.create(user)
         return Response({
@@ -132,6 +135,16 @@ class ProjectCreateAPIView(APIView):
             return Response({'project_id': project.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class MultipleProjectDetailsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request,):
+        projects = Project.objects.all()
+        if not projects:
+            return Response({"error": "No projects found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class DocumentDownloadAPIView(APIView):
