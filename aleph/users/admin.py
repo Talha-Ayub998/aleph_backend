@@ -5,7 +5,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ['id', 'user_id', 'email', 'is_staff', 'is_superuser']
 
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'file', 'uploaded_at']
+    list_display = ['id', 'file_url', 'uploaded_at', 'project']
 
 class DocumentMetaAdmin(admin.ModelAdmin):
     list_display = ['id', 'document', 'hash_value']
