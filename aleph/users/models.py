@@ -124,51 +124,12 @@ class Project(models.Model):
         return self.name
 
 class Document(models.Model):
-    file = models.FileField(upload_to='documents/')
+    file_url = models.URLField(max_length=500)  # Store the S3 URL here
     uploaded_at = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='documents')
 
     def __str__(self):
-        return str(self.file)
-    
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        
-        file_extension = os.path.splitext(self.file.name)[1].lower()
-        
-        if file_extension == '.pdf':
-            # Handle PDF files
-            pdf_path = self.file.path
-            doc = fitz.open(pdf_path)
-            for page_num in range(doc.page_count):
-                page = doc.load_page(page_num)
-                pix = page.get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                img_io = io.BytesIO()
-                img.save(img_io, format='JPEG')
-                img_content = ContentFile(img_io.getvalue(), f"{self.file.name}_{page_num+1}.jpg")
-                PageImage.objects.create(document=self, image=img_content)
-            doc.close()
-        elif file_extension in ['.jpg', '.jpeg', '.png', '.gif']:
-            # Handle image files
-            with open(self.file.path, 'rb') as f:
-                img_content = ContentFile(f.read(), self.file.name)
-                PageImage.objects.create(document=self, image=img_content)
-        elif file_extension == '.txt':
-            # Handle text files
-            with open(self.file.path, 'r') as f:
-                # Create an image with text content
-                img = Image.new('RGB', (800, 600), color='white')
-                d = ImageDraw.Draw(img)
-                font = ImageFont.load_default()
-                text = f.read()
-                d.text((10, 10), text, fill='black', font=font)
-                
-                # Save the image
-                img_io = io.BytesIO()
-                img.save(img_io, format='JPEG')
-                img_content = ContentFile(img_io.getvalue(), f"{self.file.name}.jpg")
-                PageImage.objects.create(document=self, image=img_content)
+        return str(self.file_url)
 
 class DocumentMeta(models.Model):
     document = models.OneToOneField(Document, on_delete=models.CASCADE)

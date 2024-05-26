@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status, permissions
 from .permissions import IsAdminUser
 from django.utils import timezone
+from aleph.helpers.s3 import *
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -107,8 +108,28 @@ class PageDocumentUploadAPIView(APIView):
             except Project.DoesNotExist:
                 return Response({'error': 'Project does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-            # Save the document with the associated project
-            document = serializer.save(project=project)
+            # Upload file to S3
+            file = request.FILES['file']  # Assuming the file is passed in the 'file' field
+            s3_service = S3Service(region_name=os.getenv('REGION'), aws_access_key_id=os.getenv(
+            'AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+            bucket_name = os.getenv('ALEPH_BUKCET')
+            file_name = file.name
+
+            # Save the file locally temporarily
+            with open(file_name, 'wb+') as temp_file:
+                for chunk in file.chunks():
+                    temp_file.write(chunk)
+
+            # Upload to S3
+            s3_service.s3_push(file_name, bucket_name, file_name)
+
+            # Clean up the local file after upload
+            os.remove(file_name)
+
+            # Save the document information to the database with the S3 URL
+            document_url = s3_service.get_document_url(s3_file=file_name, s3_bucket=bucket_name)
+            document = serializer.save(project=project, file_url=document_url)
+
             return Response({'document_id': document.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -154,13 +175,7 @@ class DocumentDownloadAPIView(APIView):
         except Document.DoesNotExist:
             return Response({'error': 'Document does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Determine the content type dynamically
-        content_type, _ = guess_type(document.file.name)
-        if content_type is None:
-            content_type = 'application/octet-stream'  # Default to binary data if content type is unknown
-
-        # Open and return the document file
-        return FileResponse(document.file, content_type=content_type)
+        return Response({'document_url': document.file_url}, status=status.HTTP_200_OK)
 
 
 class ProjectDocumentsAPIView(APIView):
