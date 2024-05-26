@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status, permissions
 from .permissions import IsAdminUser
 from django.utils import timezone
-from aleph.helpers.s3 import *
+from helpers.s3 import *
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
