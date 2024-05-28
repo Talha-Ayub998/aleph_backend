@@ -8,6 +8,12 @@ class S3Service:
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key
         )
+        self.client = boto3.client(
+            service_name=s3,
+            region_name=region_name,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key
+        )
 
     def s3_push(self, file_name, bucket_name, key="credentials.json"):
         try:
@@ -31,3 +37,10 @@ class S3Service:
         except Exception as e:
             print(e)
             return None
+
+    def delete_file(self, s3_file, s3_bucket):
+        try:
+            self.client.delete_object(Bucket=s3_bucket, Key=s3_file)
+            print(f"Successfully deleted {s3_file} from {s3_bucket}")
+        except Exception as e:
+            print(e)

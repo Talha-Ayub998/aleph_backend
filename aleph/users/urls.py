@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/view_projects/', MultipleProjectDetailsAPIView.as_view(), name='api-project-details'),
     path('api/download_document/<int:document_id>/', DocumentDownloadAPIView.as_view(), name='api-download-document'),
     path('api/project_documents/<int:project_id>/', ProjectDocumentsAPIView.as_view(), name='api-project-documents'),
+    path('api/remove-s3-file/', RemoveS3FileAPIView.as_view(), name='remove_s3_file'),
     path('api/signup/', PotentialUserCreateAPIView.as_view(), name='potential-user-signup'),
     path('api/approve/', ApproveUserAPIView.as_view(), name='approve-user'),
     path('api/all/potential/users/', MultiplePotentialDetailsAPIView.as_view(), name='all-potential-user-details'),

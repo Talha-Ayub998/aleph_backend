@@ -76,12 +76,16 @@ class PageImageSerializer(serializers.ModelSerializer):
         model = PageImage
         fields = ['id', 'document', 'image']
 
-
-
 class PageDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ['id', 'file_url', 'uploaded_at']
+        fields = ['id', 'uploaded_at', 'file_url', 'project']
+
+class MultiplePageDocumentSerializer(serializers.Serializer):
+    files = serializers.ListField(
+        child=serializers.FileField()
+    )
+    project_id = serializers.IntegerField()
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
