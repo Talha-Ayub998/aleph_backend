@@ -39,12 +39,7 @@ class S3Service:
 
     def delete_file(self, s3_file, s3_bucket):
         try:
-            response = self.client.delete_object(Bucket=s3_bucket, Key=s3_file)
-            if response.get('DeleteMarker'):
-                return True
-            else:
-                raise Exception(f"DeleteMarker not found in response for {s3_file} in {s3_bucket}")
-        except self.client.exceptions.NoSuchKey:
-            raise Exception(f"File {s3_file} does not exist in {s3_bucket}")
+            self.client.delete_object(Bucket=s3_bucket, Key=s3_file)
+            return True
         except Exception as e:
             raise Exception(f"Failed to delete {s3_file} from {s3_bucket}: {e}")
