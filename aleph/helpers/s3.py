@@ -17,17 +17,17 @@ class S3Service:
 
     def s3_push(self, file_name, bucket_name, key="credentials.json"):
         try:
-            self.s3.Bucket(bucket_name).upload_file(
-                Filename=file_name, Key=key)
+            self.s3.Bucket(bucket_name).upload_file(Filename=file_name, Key=key)
+            return True
         except Exception as e:
-            print(e)
+            raise Exception(f"Failed to upload {file_name} to {bucket_name}: {e}")
 
     def download_from_s3(self, s3_file, s3_bucket, local_file):
         try:
             self.s3.Bucket(s3_bucket).download_file(s3_file, local_file)
-            print("Successfully Downloaded")
+            return True
         except Exception as e:
-            print(e)
+            raise Exception(f"Failed to download {s3_file} from {s3_bucket}: {e}")
 
     def get_document_url(self, s3_file, s3_bucket):
         try:
@@ -35,12 +35,11 @@ class S3Service:
             object_url = f"https://{bucket.name}.s3.amazonaws.com/{s3_file}"
             return object_url
         except Exception as e:
-            print(e)
-            return None
+            raise Exception(f"Failed to get URL for {s3_file} in {s3_bucket}: {e}")
 
     def delete_file(self, s3_file, s3_bucket):
         try:
             self.client.delete_object(Bucket=s3_bucket, Key=s3_file)
-            print(f"Successfully deleted {s3_file} from {s3_bucket}")
+            return True
         except Exception as e:
-            print(e)
+            raise Exception(f"Failed to delete {s3_file} from {s3_bucket}: {e}")

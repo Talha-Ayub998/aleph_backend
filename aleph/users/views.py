@@ -102,7 +102,7 @@ class PageDocumentUploadAPIView(APIView):
             # Retrieve the project from request data
             project_id = serializer.validated_data['project_id']
             files = serializer.validated_data['files']
-            
+
             if not project_id:
                 return Response({'error': 'Project ID is required'}, status=status.HTTP_400_BAD_REQUEST)
             try:
@@ -110,8 +110,11 @@ class PageDocumentUploadAPIView(APIView):
             except Project.DoesNotExist:
                 return Response({'error': 'Project does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-            s3_service = S3Service(region_name=os.getenv('REGION'), aws_access_key_id=os.getenv(
-                'AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+            s3_service = S3Service(
+                region_name=os.getenv('REGION'),
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+            )
             bucket_name = os.getenv('ALEPH_BUCKET')
 
             document_ids = []
@@ -123,27 +126,32 @@ class PageDocumentUploadAPIView(APIView):
                     for chunk in file.chunks():
                         temp_file.write(chunk)
 
-                # Upload to S3
-                s3_service.s3_push(file_name, bucket_name, file_name)
+                try:
+                    # Upload to S3
+                    if s3_service.s3_push(file_name, bucket_name, file_name):
+                        # Clean up the local file after upload
+                        os.remove(file_name)
 
-                # Clean up the local file after upload
-                os.remove(file_name)
+                        # Save the document information to the database with the S3 URL
+                        document_url = s3_service.get_document_url(s3_file=file_name, s3_bucket=bucket_name)
 
-                # Save the document information to the database with the S3 URL
-                document_url = s3_service.get_document_url(s3_file=file_name, s3_bucket=bucket_name)
-                
-                # Use PageDocumentSerializer to serialize the data before saving to the database
-                serializer = PageDocumentSerializer(data={'file_url': document_url, 'project': project.id})
-                if serializer.is_valid():
-                    serializer.save()
-                    document_ids.append(serializer.data['id'])
-                else:
-                    # If serializer is not valid, return errors
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                        # Use PageDocumentSerializer to serialize the data before saving to the database
+                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url, 'project': project.id})
+                        if doc_serializer.is_valid():
+                            doc_serializer.save()
+                            document_ids.append(doc_serializer.data['id'])
+                        else:
+                            return Response(doc_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        # Ensure local file is removed in case of an error
+                        os.remove(file_name)
+                        return Response({'error': f'Failed to upload {file_name} to S3'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                except Exception as e:
+                    os.remove(file_name)  # Ensure local file is removed in case of an error
+                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response({'document_ids': document_ids}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class RemoveS3FileAPIView(APIView):
     def delete(self, request, *args, **kwargs):
@@ -158,11 +166,10 @@ class RemoveS3FileAPIView(APIView):
             bucket_name = os.getenv('ALEPH_BUCKET')
             s3_client = S3Service(region_name=os.getenv('REGION'), aws_access_key_id=os.getenv(
             'AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
-            
-            # Remove the file from the S3 bucket
-            s3_client.delete_file(s3_file=s3_file, s3_bucket=bucket_name)
-            
-            return Response({'message': f'File {s3_file} removed successfully from {bucket_name}'}, status=status.HTTP_204_NO_CONTENT)
+            bucket_name = os.getenv('ALEPH_BUCKET')
+            if s3_client.delete_file(s3_file=s3_file, s3_bucket=bucket_name):
+                return Response({'message': f'File {s3_file} removed successfully from {bucket_name}'}, status=status.HTTP_204_NO_CONTENT)
+
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
