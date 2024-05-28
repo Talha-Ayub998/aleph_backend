@@ -155,20 +155,31 @@ class PageDocumentUploadAPIView(APIView):
 
 class RemoveS3FileAPIView(APIView):
     def delete(self, request, *args, **kwargs):
-        # Extract file name and bucket name from request parameters
-        s3_file = request.data.get('s3_file')  # File name in S3
+        # Extract file name from request parameters
+        s3_file_name = request.data.get('s3_file_name')  # File name in S3
+
         # Validate input
-        if not s3_file:
-            return Response({'error': 's3_file is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        if not s3_file_name:
+            return Response({'error': 's3_file_name is required'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             # Initialize the S3 client
             bucket_name = os.getenv('ALEPH_BUCKET')
             s3_client = S3Service(region_name=os.getenv('REGION'), aws_access_key_id=os.getenv(
-            'AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
-            bucket_name = os.getenv('ALEPH_BUCKET')
-            if s3_client.delete_file(s3_file=s3_file, s3_bucket=bucket_name):
-                return Response({'message': f'File {s3_file} removed successfully from {bucket_name}'}, status=status.HTTP_204_NO_CONTENT)
+                'AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+
+            # Find the document in the database using the file name
+            document = Document.objects.filter(file_url__endswith=s3_file_name).first()
+            if not document:
+                return Response({'error': 'Document not found in the database'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Delete the file from S3
+            if s3_client.delete_file(s3_file=s3_file_name, s3_bucket=bucket_name):
+                # Delete the document from the database
+                document.delete()
+                return Response({'message': f'File {s3_file_name} removed successfully from {bucket_name}'}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({'error': 'Failed to delete file from S3'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
