@@ -145,7 +145,7 @@ class PageDocumentUploadAPIView(APIView):
                         document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
 
                         # Use PageDocumentSerializer to serialize the data before saving to the database
-                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url, 'project': project.id})
+                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url, 's3_file_name': unique_key, 'project': project.id})
                         if doc_serializer.is_valid():
                             doc_serializer.save()
                             document_ids.append(doc_serializer.data['id'])
@@ -164,32 +164,39 @@ class PageDocumentUploadAPIView(APIView):
 
 class RemoveS3FileAPIView(APIView):
     def delete(self, request, *args, **kwargs):
-        # Extract file name from request parameters
-        s3_file_name = request.data.get('s3_file_name')  # File name in S3
+        # Extract document ID from request parameters
+        document_id = request.data.get('document_id')
 
         # Validate input
-        if not s3_file_name:
-            return Response({'error': 's3_file_name is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not document_id:
+            return Response({'error': 'document_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             # Initialize the S3 client
             bucket_name = os.getenv('ALEPH_BUCKET')
-            s3_client = S3Service(region_name=os.getenv('REGION'), aws_access_key_id=os.getenv(
-                'AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+            s3_client = S3Service(
+                region_name=os.getenv('REGION'),
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+            )
 
-            # Find the document in the database using the file name
-            document = Document.objects.filter(file_url__endswith=s3_file_name).first()
+            # Find the document in the database using the document ID
+            document = Document.objects.get(id=document_id)
             if not document:
                 return Response({'error': 'Document not found in the database'}, status=status.HTTP_404_NOT_FOUND)
 
+            # Extract the S3 file key from the document's file URL
+            s3_file_key = document.s3_file_name
             # Delete the file from S3
-            if s3_client.delete_file(s3_file=s3_file_name, s3_bucket=bucket_name):
+            if s3_client.delete_file(s3_file=s3_file_key, s3_bucket=bucket_name):
                 # Delete the document from the database
                 document.delete()
-                return Response({'message': f'File {s3_file_name} removed successfully from {bucket_name}'}, status=status.HTTP_204_NO_CONTENT)
+                return Response({'message': f'File {s3_file_key} removed successfully from {bucket_name}'}, status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response({'error': 'Failed to delete file from S3'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        except Document.DoesNotExist:
+            return Response({'error': 'Document not found in the database'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
