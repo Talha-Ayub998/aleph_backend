@@ -212,6 +212,8 @@ class ProjectDeleteAPIView(APIView):
 
             # Retrieve all documents associated with the project
             documents = project.documents.all()
+            if not documents:
+                return Response({'error': 'Documents not found against this project'}, status=status.HTTP_404_NOT_FOUND)
 
             # Extract S3 file keys from the document objects
             file_keys = [document.s3_file_name for document in documents]
