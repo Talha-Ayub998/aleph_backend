@@ -88,13 +88,6 @@ class UserDeleteAPIView(APIView):
         user.delete()
         return Response(f"User has been deleted successfully", status=status.HTTP_200_OK)
 
-class PageImageView(APIView):
-    def get(self, request, image_id):
-        # Retrieve the PageImage object
-        page_image = get_object_or_404(PageImage, id=image_id)
-        # Open and return the image file
-        return FileResponse(page_image.image, content_type='image/jpeg')
-
 class PageDocumentUploadAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -200,17 +193,44 @@ class RemoveS3FileAPIView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class PageDocumentImagesAPIView(APIView):
+class ProjectDeleteAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        document_id = self.kwargs['document_id']
-        return PageImage.objects.filter(document_id=document_id)
+    def delete(self, request, *args, **kwargs):
+        try:
+            bucket_name = os.getenv('ALEPH_BUCKET')
+            s3_client = S3Service(
+                region_name=os.getenv('REGION'),
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+            )
+            project_id = request.data.get('project_id')
+            project = Project.objects.get(id=project_id)
 
-    def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        image_urls = [page_image.image.url for page_image in queryset]
-        return JsonResponse({'image_urls': image_urls})
+            # Retrieve all documents associated with the project
+            documents = project.documents.all()
+
+            # Extract S3 file keys from the document objects
+            file_keys = [document.s3_file_name for document in documents]
+
+            # Delete documents from S3 in bulk
+            s3_response = s3_client.bulk_delete_files(file_keys, bucket_name)
+
+            # Check if deletion from S3 was successful
+            if 'Errors' in s3_response:
+                # Handle errors if any files failed to delete from S3
+                error_files = [error['Key'] for error in s3_response['Errors']]
+                return Response({'error': f'Failed to delete files from S3: {error_files}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Delete the project, which will also delete associated documents
+            project.delete()
+
+            return Response(f"Project and associated documents have been deleted successfully", status=status.HTTP_200_OK)
+
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ProjectCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]

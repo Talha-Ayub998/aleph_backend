@@ -15,7 +15,18 @@ class S3Service:
             aws_secret_access_key=aws_secret_access_key
         )
 
-    def s3_push(self, file_name, bucket_name, key="credentials.json"):
+    def upload_to_s3(self, file_name, bucket_name, key=None):
+        """
+        Uploads a file to the specified S3 bucket.
+
+        Args:
+            file_name (str): The local path of the file to upload.
+            bucket_name (str): The name of the S3 bucket.
+            key (str, optional): The key (path) under which to store the file in the bucket. Defaults to None.
+
+        Returns:
+            bool: True if upload is successful, False otherwise.
+        """
         try:
             self.s3.Bucket(bucket_name).upload_file(Filename=file_name, Key=key)
             return True
@@ -23,6 +34,17 @@ class S3Service:
             raise Exception(f"Failed to upload {file_name} to {bucket_name}: {e}")
 
     def download_from_s3(self, s3_file, s3_bucket, local_file):
+        """
+        Downloads a file from the specified S3 bucket to the local filesystem.
+
+        Args:
+            s3_file (str): The key (path) of the file in the S3 bucket.
+            s3_bucket (str): The name of the S3 bucket.
+            local_file (str): The local path where the file will be saved.
+
+        Returns:
+            bool: True if download is successful, False otherwise.
+        """
         try:
             self.s3.Bucket(s3_bucket).download_file(s3_file, local_file)
             return True
@@ -30,6 +52,16 @@ class S3Service:
             raise Exception(f"Failed to download {s3_file} from {s3_bucket}: {e}")
 
     def get_document_url(self, s3_file, s3_bucket):
+        """
+        Generates a pre-signed URL for accessing the specified file in the S3 bucket.
+
+        Args:
+            s3_file (str): The key (path) of the file in the S3 bucket.
+            s3_bucket (str): The name of the S3 bucket.
+
+        Returns:
+            str: The pre-signed URL for accessing the file.
+        """
         try:
             bucket = self.s3.Bucket(s3_bucket)
             object_url = f"https://{bucket.name}.s3.amazonaws.com/{s3_file}"
@@ -38,8 +70,36 @@ class S3Service:
             raise Exception(f"Failed to get URL for {s3_file} in {s3_bucket}: {e}")
 
     def delete_file(self, s3_file, s3_bucket):
+        """
+        Deletes the specified file from the S3 bucket.
+
+        Args:
+            s3_file (str): The key (path) of the file in the S3 bucket.
+            s3_bucket (str): The name of the S3 bucket.
+
+        Returns:
+            bool: True if deletion is successful, False otherwise.
+        """
         try:
             self.client.delete_object(Bucket=s3_bucket, Key=s3_file)
             return True
         except Exception as e:
             raise Exception(f"Failed to delete {s3_file} from {s3_bucket}: {e}")
+
+    def bulk_delete_files(self, file_keys, s3_bucket):
+        """
+        Deletes multiple files from the specified S3 bucket.
+
+        Args:
+            file_keys (list): List of file keys (paths) in the S3 bucket to be deleted.
+            s3_bucket (str): The name of the S3 bucket.
+
+        Returns:
+            dict: A dictionary containing the results of the deletion operation.
+        """
+        try:
+            objects_to_delete = [{'Key': key} for key in file_keys]
+            response = self.client.delete_objects(Bucket=s3_bucket, Delete={'Objects': objects_to_delete})
+            return response
+        except Exception as e:
+            raise Exception(f"Failed to delete files from {s3_bucket}: {e}")
