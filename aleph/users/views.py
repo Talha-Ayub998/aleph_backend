@@ -130,7 +130,7 @@ class PageDocumentUploadAPIView(APIView):
                     unique_key = f"{file_hash}_{int(time.time())}"
 
                     # Upload to S3 using the unique key name
-                    if s3_service.s3_push(temp_file_path, bucket_name, unique_key):
+                    if s3_service.upload_to_s3(temp_file_path, bucket_name, unique_key):
                         # Clean up the local file after upload
                         os.remove(temp_file_path)
 
