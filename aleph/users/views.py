@@ -138,7 +138,10 @@ class PageDocumentUploadAPIView(APIView):
                         document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
 
                         # Use PageDocumentSerializer to serialize the data before saving to the database
-                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url, 's3_file_name': unique_key, 'project': project.id})
+                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url,
+                                                                        's3_file_name': unique_key,
+                                                                        'project': project.id,
+                                                                        'file_name': file_name})
                         if doc_serializer.is_valid():
                             doc_serializer.save()
                             document_ids.append(doc_serializer.data['id'])

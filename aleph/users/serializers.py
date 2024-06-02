@@ -79,7 +79,7 @@ class PageImageSerializer(serializers.ModelSerializer):
 class PageDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ['id', 'uploaded_at', 'file_url', 's3_file_name', 'project']
+        fields = ['id', 'uploaded_at', 'file_url', 's3_file_name', 'file_name', 'project']
 
 class MultiplePageDocumentSerializer(serializers.Serializer):
     files = serializers.ListField(

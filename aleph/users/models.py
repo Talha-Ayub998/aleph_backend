@@ -125,6 +125,7 @@ class Project(models.Model):
 
 class Document(models.Model):
     s3_file_name = models.CharField(max_length=2000, null=True, blank=True)
+    file_name = models.CharField(max_length=500, null=True, blank=True)
     file_url = models.URLField(max_length=500, null=True, blank=True)  # Store the S3 URL here
     uploaded_at = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='documents')
