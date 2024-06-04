@@ -214,7 +214,7 @@ class ProjectDeleteAPIView(APIView):
             documents = project.documents.all()
             if not documents:
                 project.delete()
-                return Response({'error': 'Project is deleted but no document is associated'}, status=status.HTTP_200_OK)
+                return Response({f'Project is deleted but no document is associated'}, status=status.HTTP_200_OK)
 
             # Extract S3 file keys from the document objects
             file_keys = [document.s3_file_name for document in documents]
