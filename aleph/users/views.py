@@ -213,7 +213,8 @@ class ProjectDeleteAPIView(APIView):
             # Retrieve all documents associated with the project
             documents = project.documents.all()
             if not documents:
-                return Response({'error': 'Documents not found against this project'}, status=status.HTTP_404_NOT_FOUND)
+                project.delete()
+                return Response({'error': 'Project is deleted but no document is associated'}, status=status.HTTP_200_OK)
 
             # Extract S3 file keys from the document objects
             file_keys = [document.s3_file_name for document in documents]
@@ -256,7 +257,7 @@ class MultipleProjectDetailsAPIView(APIView):
         if not projects:
             return Response({"error": "No projects found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ProjectSerializer(projects, many=True)
+        serializer = ProjectMultipleSerializer(projects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

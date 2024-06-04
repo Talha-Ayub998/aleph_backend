@@ -92,6 +92,16 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = ['id', 'name', 'description']
 
+class ProjectMultipleSerializer(serializers.ModelSerializer):
+    total_documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = ['id', 'name', 'description', 'total_documents']
+
+    def get_total_documents(self, obj):
+        return obj.documents.count()
+
 class PotentialUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PotentialUser
