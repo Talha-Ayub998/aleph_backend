@@ -134,36 +134,29 @@ class PageDocumentUploadAPIView(APIView):
 
                     # Upload to S3 using the unique key name
                     if s3_service.upload_to_s3(temp_file_path, bucket_name, unique_key):
-                        # Clean up the local file after upload
-                        os.remove(temp_file_path)
+                                os.remove(temp_file_path)
 
-                        # Save the document information to the database with the S3 URL
-                        document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
-                        # Use PageDocumentSerializer to serialize the data before saving to the database
-                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url,
-                                                                        's3_file_name': unique_key,
-                                                                        'project': project.id,
-                                                                        'file_name': file_name})
+                                # Save document information
+                                document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
+                                doc = Document.objects.create(file_url=document_url,
+                                                                   s3_file_name=unique_key,
+                                                                   project=project,
+                                                                   file_name=file_name)
 
-                        if doc_serializer.is_valid():
-                            document = doc_serializer.save()
-                            # Save document metadata using serializer
-                            # meta_serializer = DocumentMetaSerializer(data={
-                            #     'document': document.id,
-                            #     'hash_value': unique_key,
-                            #     'name': file_name,
-                            #     'size_bytes': metadata['Size (bytes)'],
-                            #     'file_type': metadata['Type'],
-                            #     'is_directory': metadata['Is Directory']
-                            # })
-
-                            # if meta_serializer.is_valid():
-                            #     meta_serializer.save()
-                            # else:
-                            #     return Response(meta_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                            document_ids.append(document.id)
-                        else:
-                            return Response(doc_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                                # Save document metadata
+                                meta = DocumentMeta.objects.create(
+                                    document=doc,
+                                    hash_value=unique_key,
+                                    name=file_name,
+                                    size_bytes=metadata['Size (bytes)'],
+                                    file_type=metadata['Type'],
+                                    is_directory=metadata['Is Directory'],
+                                    creation_time=metadata['Creation Time'],
+                                    last_modified_time=metadata['Last Modified Time'],
+                                    last_accessed_time=metadata['Last Accessed Time'],
+                                    permissions=metadata['Permissions']
+                                )
+                                document_ids.append(doc.id)
                     else:
                         # Ensure local file is removed in case of an error
                         os.remove(temp_file_path)
