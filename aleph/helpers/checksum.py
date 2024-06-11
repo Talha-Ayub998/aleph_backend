@@ -35,9 +35,9 @@ def get_file_metadata(file_path):
         'Size (bytes)': file_info.size,
         'Type': file_type,
         'Is Directory': file_info.is_dir,
-        'Creation Time': file_info.created.strftime('%Y-%m-%dT%H:%M:%S') if file_info.created else 'N/A',
-        'Last Modified Time': file_info.modified.strftime('%Y-%m-%dT%H:%M:%S') if file_info.modified else 'N/A',
-        'Last Accessed Time': file_info.accessed.strftime('%Y-%m-%dT%H:%M:%S') if file_info.accessed else 'N/A',
+        'Creation Date': file_info.created.date() if file_info.created else 'N/A',
+        'Last Modified Date': file_info.modified.date() if file_info.modified else 'N/A',
+        'Last Accessed Date': file_info.accessed.date() if file_info.accessed else 'N/A',
         'Permissions': file_info.permissions
     }
     
