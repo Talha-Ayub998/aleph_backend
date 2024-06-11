@@ -151,7 +151,7 @@ class PageDocumentUploadAPIView(APIView):
                                     size_bytes=metadata['Size (bytes)'],
                                     file_type=metadata['Type'],
                                     is_directory=metadata['Is Directory'],
-                                    creation_time=metadata['Creation Time'],
+                                    # creation_time=metadata['Creation Time'],
                                     last_modified_time=metadata['Last Modified Time'],
                                     last_accessed_time=metadata['Last Accessed Time']
                                 )
