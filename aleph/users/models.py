@@ -2,13 +2,14 @@ import random
 import string
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, User, PermissionsMixin
-# from django.contrib.postgres.fields import JSONField
-from django.db.models import JSONField
-import fitz  # PyMuPDF
-from django.core.files.base import ContentFile
-from PIL import Image, ImageDraw, ImageFont
-import io
-import os
+# import json
+# from datetime import datetime# from django.contrib.postgres.fields import JSONField
+# from django.db.models import JSONField
+# import fitz  # PyMuPDF
+# from django.core.files.base import ContentFile
+# from PIL import Image, ImageDraw, ImageFont
+# import io
+# import os
 
 
 class UserManager(BaseUserManager):
@@ -136,7 +137,14 @@ class Document(models.Model):
 class DocumentMeta(models.Model):
     document = models.OneToOneField(Document, on_delete=models.CASCADE)
     hash_value = models.CharField(max_length=255, unique=True)
-    metadata = JSONField(default=dict)  # This field will store the metadata dictionary
+    name = models.CharField(max_length=255, null=True, blank=True)
+    size_bytes = models.PositiveIntegerField(null=True, blank=True)
+    file_type = models.CharField(max_length=100, null=True, blank=True)
+    is_directory = models.BooleanField(default=False, null=True, blank=True)
+    creation_time = models.DateTimeField(null=True, blank=True)
+    last_modified_time = models.DateTimeField(null=True, blank=True)
+    last_accessed_time = models.DateTimeField(null=True, blank=True)
+    permissions = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"Meta for {self.document}"

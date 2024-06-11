@@ -84,7 +84,6 @@ class DocumentMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentMeta
         fields = '__all__'
-
 class MultiplePageDocumentSerializer(serializers.Serializer):
     files = serializers.ListField(
         child=serializers.FileField()

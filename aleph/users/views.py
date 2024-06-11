@@ -117,11 +117,12 @@ class PageDocumentUploadAPIView(APIView):
             document_ids = []
             for file in files:
                 file_name = file.name
-                # Create a temporary file
-                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file_path = f"/tmp/{file_name}"
+
+                # Save the file locally temporarily
+                with open(temp_file_path, 'wb+') as temp_file:
                     for chunk in file.chunks():
                         temp_file.write(chunk)
-                    temp_file_path = temp_file.name
 
                 try:
                     # Calculate the checksum of the file
@@ -138,28 +139,30 @@ class PageDocumentUploadAPIView(APIView):
 
                         # Save the document information to the database with the S3 URL
                         document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
-
                         # Use PageDocumentSerializer to serialize the data before saving to the database
-                        doc_serializer = PageDocumentSerializer(data={
-                            'file_url': document_url,
-                            's3_file_name': unique_key,
-                            'project': project.id,
-                            'file_name': file_name
-                        })
+                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url,
+                                                                        's3_file_name': unique_key,
+                                                                        'project': project.id,
+                                                                        'file_name': file_name})
 
                         if doc_serializer.is_valid():
                             document = doc_serializer.save()
-
-                            # Save the document meta information
-                            document_meta_data = {
+                            # Save document metadata using serializer
+                            meta_serializer = DocumentMetaSerializer(data={
                                 'document': document.id,
                                 'hash_value': unique_key,
-                                'metadata': json.dumps(metadata)  # Convert metadata to JSON string
-                            }
-                            meta_serializer = DocumentMetaSerializer(data=document_meta_data)
+                                'name': file_name,
+                                'size_bytes': metadata['Size (bytes)'],
+                                'file_type': metadata['Type'],
+                                'is_directory': metadata['Is Directory'],
+                                'creation_time': metadata['Creation Time'],
+                                'last_modified_time': metadata['Last Modified Time'],
+                                'last_accessed_time': metadata['Last Accessed Time']
+                            })
+
                             if meta_serializer.is_valid():
                                 meta_serializer.save()
-                                document_ids.append(doc_serializer.data['id'])
+                                document_ids.append(document.id)
                             else:
                                 return Response(meta_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                         else:
