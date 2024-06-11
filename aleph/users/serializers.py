@@ -77,9 +77,22 @@ class PageImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'document', 'image']
 
 class PageDocumentSerializer(serializers.ModelSerializer):
+    hash_value = serializers.CharField(source='documentmeta.hash_value')
+    name = serializers.CharField(source='documentmeta.name')
+    size_bytes = serializers.IntegerField(source='documentmeta.size_bytes')
+    file_type = serializers.CharField(source='documentmeta.file_type')
+    is_directory = serializers.BooleanField(source='documentmeta.is_directory')
+    creation_time = serializers.DateTimeField(source='documentmeta.creation_time')
+    last_modified_time = serializers.DateTimeField(source='documentmeta.last_modified_time')
+    last_accessed_time = serializers.DateTimeField(source='documentmeta.last_accessed_time')
+    permissions = serializers.CharField(source='documentmeta.permissions')
+
     class Meta:
         model = Document
-        fields = ['id', 'uploaded_at', 'file_url', 's3_file_name', 'file_name', 'project']
+        fields = ['id', 'uploaded_at', 'file_url', 's3_file_name', 'file_name', 'project',
+                  'hash_value', 'name', 'size_bytes', 'file_type', 'is_directory',
+                  'creation_time', 'last_modified_time', 'last_accessed_time', 'permissions']
+
 class DocumentMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentMeta
