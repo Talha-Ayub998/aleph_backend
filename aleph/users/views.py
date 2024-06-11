@@ -112,7 +112,7 @@ class PageDocumentUploadAPIView(APIView):
                 aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                 aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
             )
-            bucket_name = os.getenv('ALEPH_BUCKET')
+            bucket_name = 'aleph-s3-bucket'
 
             document_ids = []
             for file in files:
