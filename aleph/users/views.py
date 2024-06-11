@@ -147,7 +147,14 @@ class PageDocumentUploadAPIView(APIView):
                                 meta = DocumentMeta.objects.create(
                                     document=doc,
                                     hash_value=unique_key,
-                                    name=file_name
+                                    name=file_name,
+                                    size_bytes=metadata['Size (bytes)'],
+                                    file_type=metadata['Type'],
+                                    is_directory=metadata['Is Directory'],
+                                    creation_time=metadata['Creation Time'],
+                                    last_modified_time=metadata['Last Modified Time'],
+                                    last_accessed_time=metadata['Last Accessed Time'],
+                                    permissions=metadata['Permissions']
                                 )
                                 document_ids.append(doc.id)
                     else:
