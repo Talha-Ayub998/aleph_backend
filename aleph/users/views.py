@@ -17,6 +17,7 @@ from django.utils import timezone
 from helpers.s3 import *
 from helpers.checksum import *
 import time
+import tempfile
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -115,17 +116,16 @@ class PageDocumentUploadAPIView(APIView):
             document_ids = []
             for file in files:
                 file_name = file.name
-                temp_file_path = f"/tmp/{file_name}"
-
-                # Save the file locally temporarily
-                with open(temp_file_path, 'wb+') as temp_file:
+                # Create a temporary file
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                     for chunk in file.chunks():
                         temp_file.write(chunk)
+                    temp_file_path = temp_file.name
 
                 try:
                     # Calculate the checksum of the file
                     file_hash = calculate_checksum(temp_file_path, file_name)
-                    metadata = get_file_metadata(file)
+                    metadata = get_file_metadata(temp_file_path)
 
                     # Generate a unique key by appending a timestamp
                     unique_key = f"{file_hash}_{int(time.time())}"
