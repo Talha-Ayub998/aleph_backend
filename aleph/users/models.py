@@ -134,20 +134,20 @@ class Document(models.Model):
     def __str__(self):
         return str(self.file_url)
 
-# class DocumentMeta(models.Model):
-#     document = models.OneToOneField(Document, on_delete=models.CASCADE)
-#     hash_value = models.CharField(max_length=255, unique=True)
-#     name = models.CharField(max_length=255, null=True, blank=True)
-#     size_bytes = models.PositiveIntegerField(null=True, blank=True)
-#     file_type = models.CharField(max_length=100, null=True, blank=True)
-#     is_directory = models.BooleanField(default=False, null=True, blank=True)
-#     creation_time = models.DateTimeField(null=True, blank=True)
-#     last_modified_time = models.DateTimeField(null=True, blank=True)
-#     last_accessed_time = models.DateTimeField(null=True, blank=True)
-#     permissions = models.CharField(max_length=255, null=True, blank=True)
+class DocumentMeta(models.Model):
+    document = models.OneToOneField(Document, on_delete=models.CASCADE)
+    hash_value = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    size_bytes = models.PositiveIntegerField(null=True, blank=True)
+    file_type = models.CharField(max_length=100, null=True, blank=True)
+    is_directory = models.BooleanField(default=False, null=True, blank=True)
+    creation_time = models.DateTimeField(null=True, blank=True)
+    last_modified_time = models.DateTimeField(null=True, blank=True)
+    last_accessed_time = models.DateTimeField(null=True, blank=True)
+    permissions = models.CharField(max_length=255, null=True, blank=True)
 
-#     def __str__(self):
-#         return f"Meta for {self.document}"
+    def __str__(self):
+        return f"Meta for {self.name}"
 
 class PageImage(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='images')

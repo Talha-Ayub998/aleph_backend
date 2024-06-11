@@ -7,8 +7,8 @@ class UserAdmin(admin.ModelAdmin):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ['id', 'file_url', 'uploaded_at', 's3_file_name', 'file_name', 'project']
 
-# class DocumentMetaAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'document', 'hash_value']
+class DocumentMetaAdmin(admin.ModelAdmin):
+    list_display = ['id', 'document', 'hash_value']
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'get_user_emails']
@@ -24,7 +24,7 @@ class OCRTextAdmin(admin.ModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Document, DocumentAdmin)
-# admin.site.register(DocumentMeta, DocumentMetaAdmin)
+admin.site.register(DocumentMeta, DocumentMetaAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(PageImage, PageImageAdmin)
 admin.site.register(OCRText, OCRTextAdmin)
