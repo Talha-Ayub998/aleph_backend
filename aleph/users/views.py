@@ -18,6 +18,7 @@ from helpers.s3 import *
 from helpers.checksum import *
 import time
 import tempfile
+import json
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -153,7 +154,7 @@ class PageDocumentUploadAPIView(APIView):
                             document_meta_data = {
                                 'document': document.id,
                                 'hash_value': unique_key,
-                                'metadata': metadata
+                                'metadata': json.dumps(metadata)  # Convert metadata to JSON string
                             }
                             meta_serializer = DocumentMetaSerializer(data=document_meta_data)
                             if meta_serializer.is_valid():
