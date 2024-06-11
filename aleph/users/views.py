@@ -124,7 +124,7 @@ class PageDocumentUploadAPIView(APIView):
 
                 try:
                     # Calculate the checksum of the file
-                    file_hash = calculate_checksum(temp_file_path)
+                    file_hash = calculate_checksum(temp_file_path, file_name)
                     metadata = get_file_metadata(file)
 
                     # Generate a unique key by appending a timestamp
