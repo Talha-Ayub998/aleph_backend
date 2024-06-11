@@ -153,8 +153,7 @@ class PageDocumentUploadAPIView(APIView):
                                     is_directory=metadata['Is Directory'],
                                     creation_time=metadata['Creation Time'],
                                     last_modified_time=metadata['Last Modified Time'],
-                                    last_accessed_time=metadata['Last Accessed Time'],
-                                    permissions=metadata['Permissions']
+                                    last_accessed_time=metadata['Last Accessed Time']
                                 )
                                 document_ids.append(doc.id)
                     else:
