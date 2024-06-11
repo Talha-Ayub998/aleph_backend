@@ -1,9 +1,8 @@
 import random
 import string
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import User
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, User, PermissionsMixin
+from django.contrib.postgres.fields import JSONField
 import fitz  # PyMuPDF
 from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
@@ -136,6 +135,7 @@ class Document(models.Model):
 class DocumentMeta(models.Model):
     document = models.OneToOneField(Document, on_delete=models.CASCADE)
     hash_value = models.CharField(max_length=255, unique=True)
+    metadata = JSONField()  # This field will store the metadata dictionary
 
     def __str__(self):
         return f"Meta for {self.document}"

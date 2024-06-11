@@ -124,7 +124,8 @@ class PageDocumentUploadAPIView(APIView):
 
                 try:
                     # Calculate the checksum of the file
-                    file_hash = calculate_checksum(temp_file_path, file_name)
+                    file_hash = calculate_checksum(temp_file_path)
+                    metadata = get_file_metadata(file)
 
                     # Generate a unique key by appending a timestamp
                     unique_key = f"{file_hash}_{int(time.time())}"
@@ -138,13 +139,28 @@ class PageDocumentUploadAPIView(APIView):
                         document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
 
                         # Use PageDocumentSerializer to serialize the data before saving to the database
-                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url,
-                                                                        's3_file_name': unique_key,
-                                                                        'project': project.id,
-                                                                        'file_name': file_name})
+                        doc_serializer = PageDocumentSerializer(data={
+                            'file_url': document_url,
+                            's3_file_name': unique_key,
+                            'project': project.id,
+                            'file_name': file_name
+                        })
+
                         if doc_serializer.is_valid():
-                            doc_serializer.save()
-                            document_ids.append(doc_serializer.data['id'])
+                            document = doc_serializer.save()
+
+                            # Save the document meta information
+                            document_meta_data = {
+                                'document': document.id,
+                                'hash_value': unique_key,
+                                'metadata': metadata
+                            }
+                            meta_serializer = DocumentMetaSerializer(data=document_meta_data)
+                            if meta_serializer.is_valid():
+                                meta_serializer.save()
+                                document_ids.append(doc_serializer.data['id'])
+                            else:
+                                return Response(meta_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                         else:
                             return Response(doc_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                     else:
@@ -157,7 +173,6 @@ class PageDocumentUploadAPIView(APIView):
 
             return Response({'document_ids': document_ids}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class RemoveS3FileAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         # Extract document ID from request parameters
