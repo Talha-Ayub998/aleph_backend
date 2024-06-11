@@ -2,14 +2,14 @@ import random
 import string
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, User, PermissionsMixin
-# import json
-# from datetime import datetime# from django.contrib.postgres.fields import JSONField
-# from django.db.models import JSONField
-# import fitz  # PyMuPDF
-# from django.core.files.base import ContentFile
-# from PIL import Image, ImageDraw, ImageFont
-# import io
-# import os
+import json
+from datetime import datetime# from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
+import fitz  # PyMuPDF
+from django.core.files.base import ContentFile
+from PIL import Image, ImageDraw, ImageFont
+import io
+import os
 
 
 class UserManager(BaseUserManager):
