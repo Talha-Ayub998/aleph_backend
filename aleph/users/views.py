@@ -154,10 +154,7 @@ class PageDocumentUploadAPIView(APIView):
                                 'name': file_name,
                                 'size_bytes': metadata['Size (bytes)'],
                                 'file_type': metadata['Type'],
-                                'is_directory': metadata['Is Directory'],
-                                'creation_time': metadata['Creation Time'],
-                                'last_modified_time': metadata['Last Modified Time'],
-                                'last_accessed_time': metadata['Last Accessed Time']
+                                'is_directory': metadata['Is Directory']
                             })
 
                             if meta_serializer.is_valid():
