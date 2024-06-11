@@ -144,11 +144,11 @@ class PageDocumentUploadAPIView(APIView):
                                                                    file_name=file_name)
 
                                 # Save document metadata
-                                # meta = DocumentMeta.objects.create(
-                                #     document=doc,
-                                #     hash_value=unique_key,
-                                #     name=file_name
-                                # )
+                                meta = DocumentMeta.objects.create(
+                                    document=doc,
+                                    hash_value=unique_key,
+                                    name=file_name
+                                )
                                 document_ids.append(doc.id)
                     else:
                         # Ensure local file is removed in case of an error
