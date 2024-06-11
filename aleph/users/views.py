@@ -149,20 +149,17 @@ class PageDocumentUploadAPIView(APIView):
                         if doc_serializer.is_valid():
                             document = doc_serializer.save()
 
-                            # Save the document meta information
-                            document_meta_data = {
-                                'document': document.id,
-                                'hash_value': unique_key,
-                                'metadata': metadata
-                            }
-                            meta_serializer = DocumentMetaSerializer(data=document_meta_data)
-                            if meta_serializer.is_valid():
-                                meta_serializer.save()
-                                document_ids.append(doc_serializer.data['id'])
-                            else:
-                                return Response(meta_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                        else:
-                            return Response(doc_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                            # # Save the document meta information
+                            # document_meta_data = {
+                            #     'document': document.id,
+                            #     'hash_value': unique_key,
+                            #     'metadata': metadata
+                            # }
+                            # meta_serializer = DocumentMetaSerializer(data=document_meta_data)
+                            # if meta_serializer.is_valid():
+                            #     meta_serializer.save()
+                            document_ids.append(doc_serializer.data['id'])
+
                     else:
                         # Ensure local file is removed in case of an error
                         os.remove(temp_file_path)
