@@ -148,20 +148,20 @@ class PageDocumentUploadAPIView(APIView):
                         if doc_serializer.is_valid():
                             document = doc_serializer.save()
                             # Save document metadata using serializer
-                            meta_serializer = DocumentMetaSerializer(data={
-                                'document': document.id,
-                                'hash_value': unique_key,
-                                'name': file_name,
-                                'size_bytes': metadata['Size (bytes)'],
-                                'file_type': metadata['Type'],
-                                'is_directory': metadata['Is Directory']
-                            })
+                            # meta_serializer = DocumentMetaSerializer(data={
+                            #     'document': document.id,
+                            #     'hash_value': unique_key,
+                            #     'name': file_name,
+                            #     'size_bytes': metadata['Size (bytes)'],
+                            #     'file_type': metadata['Type'],
+                            #     'is_directory': metadata['Is Directory']
+                            # })
 
-                            if meta_serializer.is_valid():
-                                meta_serializer.save()
-                                document_ids.append(document.id)
-                            else:
-                                return Response(meta_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                            # if meta_serializer.is_valid():
+                            #     meta_serializer.save()
+                            # else:
+                            #     return Response(meta_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                            document_ids.append(document.id)
                         else:
                             return Response(doc_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                     else:
