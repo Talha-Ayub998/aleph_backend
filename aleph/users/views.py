@@ -17,6 +17,8 @@ from django.utils import timezone
 from helpers.s3 import *
 from helpers.checksum import *
 import time
+import tempfile
+import json
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -110,7 +112,7 @@ class PageDocumentUploadAPIView(APIView):
                 aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                 aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
             )
-            bucket_name = os.getenv('ALEPH_BUCKET')
+            bucket_name = 'aleph-s3-bucket'
 
             document_ids = []
             for file in files:
@@ -125,28 +127,35 @@ class PageDocumentUploadAPIView(APIView):
                 try:
                     # Calculate the checksum of the file
                     file_hash = calculate_checksum(temp_file_path, file_name)
+                    metadata = get_file_metadata(temp_file_path)
 
                     # Generate a unique key by appending a timestamp
                     unique_key = f"{file_hash}_{int(time.time())}"
 
                     # Upload to S3 using the unique key name
                     if s3_service.upload_to_s3(temp_file_path, bucket_name, unique_key):
-                        # Clean up the local file after upload
-                        os.remove(temp_file_path)
+                                os.remove(temp_file_path)
 
-                        # Save the document information to the database with the S3 URL
-                        document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
+                                # Save document information
+                                document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
+                                doc = Document.objects.create(file_url=document_url,
+                                                                   s3_file_name=unique_key,
+                                                                   project=project,
+                                                                   file_name=file_name)
 
-                        # Use PageDocumentSerializer to serialize the data before saving to the database
-                        doc_serializer = PageDocumentSerializer(data={'file_url': document_url,
-                                                                        's3_file_name': unique_key,
-                                                                        'project': project.id,
-                                                                        'file_name': file_name})
-                        if doc_serializer.is_valid():
-                            doc_serializer.save()
-                            document_ids.append(doc_serializer.data['id'])
-                        else:
-                            return Response(doc_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                                # Save document metadata
+                                meta = DocumentMeta.objects.create(
+                                    document=doc,
+                                    hash_value=unique_key,
+                                    name=file_name,
+                                    size_bytes=metadata['Size (bytes)'],
+                                    file_type=metadata['Type'],
+                                    is_directory=metadata['Is Directory'],
+                                    # creation_time=metadata['Creation Time'],
+                                    last_modified_time=metadata['Last Modified Time'],
+                                    last_accessed_time=metadata['Last Accessed Time']
+                                )
+                                document_ids.append(doc.id)
                     else:
                         # Ensure local file is removed in case of an error
                         os.remove(temp_file_path)
@@ -157,7 +166,6 @@ class PageDocumentUploadAPIView(APIView):
 
             return Response({'document_ids': document_ids}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class RemoveS3FileAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         # Extract document ID from request parameters
