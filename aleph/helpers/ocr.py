@@ -6,6 +6,7 @@ import re
 import magic
 from docx import Document
 import subprocess
+import csv
 
 
 def extract_text_from_image(image_path):
@@ -73,6 +74,18 @@ def extract_text_from_txt(txt_path):
             return file.read()
     except Exception as e:
         raise RuntimeError(f"Failed to extract text from TXT file: {str(e)}")
+    
+
+def extract_text_from_csv(file_path):
+    """
+    Extract text from a CSV file.
+    """
+    try:
+        with open(file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            return '\n'.join([','.join(row) for row in reader])
+    except Exception as e:
+        raise RuntimeError(f"Error reading CSV file: {str(e)}")
 
 def extract_emails(text):
     """
@@ -102,6 +115,8 @@ def extract_text_from_file(file_path):
             return extract_text_from_image(file_path)
         elif 'text/plain' in file_type:
             return extract_text_from_txt(file_path)
+        elif 'csv' in file_type or file_path.endswith('.csv'):
+            return extract_text_from_csv(file_path)
         else:
             raise ValueError(f"Unsupported file type: {file_type}")
     except Exception as e:
