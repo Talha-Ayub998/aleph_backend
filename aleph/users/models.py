@@ -2,15 +2,7 @@ import random
 import string
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, User, PermissionsMixin
-import json
-from datetime import datetime# from django.contrib.postgres.fields import JSONField
-from django.db.models import JSONField
-import fitz  # PyMuPDF
-from django.core.files.base import ContentFile
-from PIL import Image, ImageDraw, ImageFont
-import io
-import os
-
+from django.contrib.postgres.fields import ArrayField
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -159,6 +151,7 @@ class PageImage(models.Model):
 class OCRText(models.Model):
     document = models.OneToOneField(Document, on_delete=models.CASCADE)
     text = models.TextField()
+    emails = ArrayField(models.CharField(max_length=255), default=list)
 
     def __str__(self):
         return f"OCR Text for {self.document}"

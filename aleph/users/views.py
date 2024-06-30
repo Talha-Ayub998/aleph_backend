@@ -17,8 +17,7 @@ from django.utils import timezone
 from helpers.s3 import *
 from helpers.checksum import *
 import time
-import tempfile
-import json
+from aleph.helpers.ocr import *
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -154,6 +153,16 @@ class PageDocumentUploadAPIView(APIView):
                                     # creation_time=metadata['Creation Time'],
                                     last_modified_time=metadata['Last Modified Time'],
                                     last_accessed_time=metadata['Last Accessed Time']
+                                )
+                                # Extract text and emails from the document
+                                text = ocr_document(temp_file_path)
+                                emails = extract_emails(text)
+
+                                # Save OCR text and emails
+                                OCRText.objects.create(
+                                    document=doc,
+                                    text=text,
+                                    emails=emails
                                 )
                                 document_ids.append(doc.id)
                     else:
