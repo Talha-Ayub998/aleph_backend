@@ -155,8 +155,7 @@ class PageDocumentUploadAPIView(APIView):
                                     last_accessed_time=metadata['Last Accessed Time']
                                 )
                                 # Extract text and emails from the document
-                                text = ocr_document(temp_file_path)
-                                emails = extract_emails(text)
+                                text, emails = ocr_document(temp_file_path)
 
                                 # Save OCR text and emails
                                 OCRText.objects.create(
