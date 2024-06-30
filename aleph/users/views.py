@@ -124,6 +124,13 @@ class PageDocumentUploadAPIView(APIView):
                         temp_file.write(chunk)
 
                 try:
+                    # Extract text and emails from the document
+                    result, emails = ocr_document(temp_file_path)
+                    if result['error']:
+                        # Return a 400 Bad Request response if there is an error in processing the file
+                        return Response({'error': result['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+
                     # Calculate the checksum of the file
                     file_hash = calculate_checksum(temp_file_path, file_name)
                     metadata = get_file_metadata(temp_file_path)
@@ -152,13 +159,11 @@ class PageDocumentUploadAPIView(APIView):
                                     last_modified_time=metadata['Last Modified Time'],
                                     last_accessed_time=metadata['Last Accessed Time']
                                 )
-                                # Extract text and emails from the document
-                                text, emails = ocr_document(temp_file_path)
 
                                 # Save OCR text and emails
                                 OCRText.objects.create(
                                     document=doc,
-                                    text=text,
+                                    text=result['text'],
                                     emails=emails
                                 )
                                 document_ids.append(doc.id)

@@ -101,35 +101,43 @@ def extract_text_from_file(file_path):
     """
     Determine file type and extract text accordingly.
     """
+    result = {
+        'text': None,
+        'error': None
+    }
+
     try:
         mime = magic.Magic(mime=True)
         file_type = mime.from_file(file_path)
 
         if 'pdf' in file_type:
-            return extract_text_from_pdf(file_path)
+            result['text'] = extract_text_from_pdf(file_path)
         elif 'officedocument.wordprocessingml.document' in file_type:
-            return extract_text_from_docx(file_path)
+            result['text'] = extract_text_from_docx(file_path)
         elif 'msword' in file_type or file_path.endswith('.doc'):
-            return extract_text_from_doc(file_path)
+            result['text'] = extract_text_from_doc(file_path)
         elif 'image' in file_type:
-            return extract_text_from_image(file_path)
+            result['text'] = extract_text_from_image(file_path)
         elif 'text/plain' in file_type:
-            return extract_text_from_txt(file_path)
+            result['text'] = extract_text_from_txt(file_path)
         elif 'csv' in file_type or file_path.endswith('.csv'):
-            return extract_text_from_csv(file_path)
+            result['text'] = extract_text_from_csv(file_path)
         else:
-            raise ValueError(f"Unsupported file type: {file_type}")
+            result['error'] = f"Unsupported file type: {file_type}"
     except Exception as e:
-        raise RuntimeError(f"Error extracting text from file: {str(e)}")
+        result['error'] = f"Error extracting text from file: {str(e)}"
+        result['text'] = ""  # Ensure 'text' is a string even if there is an error
+
+    return result
 
 def ocr_document(file_path):
     """
     Perform OCR on the given document file.
     """
     try:
-        text = extract_text_from_file(file_path)
-        emails = extract_emails(text)
-        return text, emails
+        result = extract_text_from_file(file_path)
+        emails = extract_emails(result['text'])
+        return result, emails
     except Exception as e:
         raise RuntimeError(f"OCR failed for document: {str(e)}")
 
