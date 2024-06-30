@@ -3,7 +3,6 @@ from rest_framework import generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from users.serializers import *
 from rest_framework.response import Response
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -18,6 +17,7 @@ from helpers.s3 import *
 from helpers.checksum import *
 import time
 from helpers.ocr import *
+from users.serializers import *
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -133,8 +133,6 @@ class PageDocumentUploadAPIView(APIView):
 
                     # Upload to S3 using the unique key name
                     if s3_service.upload_to_s3(temp_file_path, bucket_name, unique_key):
-                                os.remove(temp_file_path)
-
                                 # Save document information
                                 document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
                                 doc = Document.objects.create(file_url=document_url,
@@ -164,12 +162,15 @@ class PageDocumentUploadAPIView(APIView):
                                     emails=emails
                                 )
                                 document_ids.append(doc.id)
+                                if os.path.exists(temp_file_path):
+                                    os.remove(temp_file_path)
                     else:
-                        # Ensure local file is removed in case of an error
-                        os.remove(temp_file_path)
+                        if os.path.exists(temp_file_path):
+                            os.remove(temp_file_path)
                         return Response({'error': f'Failed to upload {file_name} to S3'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 except Exception as e:
-                    os.remove(temp_file_path)  # Ensure local file is removed in case of an error
+                    if os.path.exists(temp_file_path):
+                        os.remove(temp_file_path)
                     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response({'document_ids': document_ids}, status=status.HTTP_201_CREATED)
