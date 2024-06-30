@@ -17,7 +17,7 @@ from django.utils import timezone
 from helpers.s3 import *
 from helpers.checksum import *
 import time
-from aleph.helpers.ocr import *
+from helpers.ocr import *
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
