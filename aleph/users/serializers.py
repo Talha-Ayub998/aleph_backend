@@ -97,6 +97,11 @@ class DocumentMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentMeta
         fields = ['document', 'name', 'size_bytes', 'file_type', 'is_directory']
+class OCRTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OCRText
+        fields = ['document', 'text', 'emails']
+
 class MultiplePageDocumentSerializer(serializers.Serializer):
     files = serializers.ListField(
         child=serializers.FileField()

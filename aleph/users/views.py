@@ -311,6 +311,17 @@ class ProjectDocumentsAPIView(APIView):
             return Response(serializer.data)
         return Response({'error': 'Document does not exist against this project'}, status=status.HTTP_404_NOT_FOUND)
 
+class OCRTextDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, document_id):
+        try:
+            ocr_text = OCRText.objects.get(document__id=document_id)
+            serializer = OCRTextSerializer(ocr_text)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except OCRText.DoesNotExist:
+            return Response({'error': 'OCR Text not found'}, status=status.HTTP_404_NOT_FOUND)
+
 class PotentialUserCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = PotentialUserSerializer(data=request.data)
