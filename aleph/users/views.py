@@ -314,7 +314,8 @@ class ProjectDocumentsAPIView(APIView):
 class OCRTextDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, document_id):
+    def get(self, request, *args, **kwargs):
+        document_id = kwargs.get('document_id')
         try:
             ocr_text = OCRText.objects.get(document__id=document_id)
             serializer = OCRTextSerializer(ocr_text)
