@@ -1,4 +1,5 @@
 import boto3
+import mimetypes
 
 class S3Service:
     def __init__(self, s3="s3", region_name=None, aws_access_key_id=None, aws_secret_access_key=None) -> None:
@@ -28,7 +29,17 @@ class S3Service:
             bool: True if upload is successful, False otherwise.
         """
         try:
-            self.s3.Bucket(bucket_name).upload_file(Filename=file_name, Key=key)
+            # Guess the MIME type of the file
+            content_type, _ = mimetypes.guess_type(file_name)
+            if content_type is None:
+                content_type = 'application/octet-stream'  # Fallback MIME type
+
+            # Upload the file with the specified content type
+            self.s3.Bucket(bucket_name).upload_file(
+                Filename=file_name,
+                Key=key,
+                ExtraArgs={'ContentType': content_type}
+            )
             return True
         except Exception as e:
             raise Exception(f"Failed to upload {file_name} to {bucket_name}: {e}")
