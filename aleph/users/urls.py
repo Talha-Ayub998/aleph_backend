@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/create_project/', ProjectCreateAPIView.as_view(), name='api-create-project'),
     path('api/view_projects/', MultipleProjectDetailsAPIView.as_view(), name='api-project-details'),
     path('api/project_documents/<int:project_id>/', ProjectDocumentsAPIView.as_view(), name='api-project-documents'),
+    path('api/ocrtext/<int:document_id>/', OCRTextDetailAPIView.as_view(), name='ocr-text-documents'),
     path('api/remove-project', ProjectDeleteAPIView.as_view(), name='api-project-delete'),
     path('api/download_document/<int:document_id>/', DocumentDownloadAPIView.as_view(), name='api-download-document'),
     path('api/remove-s3-file/', RemoveS3FileAPIView.as_view(), name='remove_s3_file'),
