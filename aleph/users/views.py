@@ -194,7 +194,24 @@ class PageDocumentUploadAPIView(APIView):
 
             return Response({'document_ids': document_ids}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class DocumentImageURLListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # document_id = request.query_params.get('document_id')
+        document_id = kwargs.get('document_id')
+        try:
+            # Fetch PageImage objects filtered by document_id
+            page_images = PageImage.objects.filter(document__id=document_id)
+            # Serialize the queryset into JSON
+            serializer = PageImageSerializer(page_images, many=True)
+            # Return the serialized data as JSON response
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except PageImage.DoesNotExist:
+            return Response({'error': 'OCR Text not found'}, status=status.HTTP_404_NOT_FOUND)
+
 class RemoveS3FileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def delete(self, request, *args, **kwargs):
         # Extract document ID from request parameters
         document_id = request.data.get('document_id')
@@ -298,6 +315,7 @@ class MultipleProjectDetailsAPIView(APIView):
 
 
 class DocumentDownloadAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, document_id):
         try:
             document = Document.objects.get(id=document_id)
