@@ -129,7 +129,7 @@ class PageDocumentUploadAPIView(APIView):
                     result, emails = ocr_document(temp_file_path)
                     if result['error']:
                         # Return a 400 Bad Request response if there is an error in processing the file
-                        return Response({'error': result['error']}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error for ocr-text': result['error']}, status=status.HTTP_400_BAD_REQUEST)
 
 
                     # Calculate the checksum of the file
