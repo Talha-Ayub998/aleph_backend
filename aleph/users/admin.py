@@ -17,7 +17,7 @@ class ProjectAdmin(admin.ModelAdmin):
         return ", ".join([user.email for user in obj.users.all()])
 
 class PageImageAdmin(admin.ModelAdmin):
-    list_display = ['id', 'image', 'document']
+    list_display = ['id', 'image_url', 'document', 'page_number']
 
 class OCRTextAdmin(admin.ModelAdmin):
     list_display = ['id', 'document']

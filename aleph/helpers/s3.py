@@ -43,6 +43,28 @@ class S3Service:
             return True
         except Exception as e:
             raise Exception(f"Failed to upload {file_name} to {bucket_name}: {e}")
+    
+    def upload_image_to_s3(self, image_bytes, bucket_name, key=None):
+        """
+        Uploads image bytes to the specified S3 bucket.
+
+        Args:
+            image_bytes (bytes): The bytes of the image to upload.
+            bucket_name (str): The name of the S3 bucket.
+            key (str, optional): The key (path) under which to store the image in the bucket. Defaults to None.
+
+        Returns:
+            bool: True if upload is successful, False otherwise.
+        """
+        try:
+            # Upload the image bytes
+            self.s3.Bucket(bucket_name).put_object(
+                Key=key,
+                Body=image_bytes
+            )
+            return True
+        except Exception as e:
+            raise Exception(f"Failed to upload image to {bucket_name}: {e}")
 
     def download_from_s3(self, s3_file, s3_bucket, local_file):
         """

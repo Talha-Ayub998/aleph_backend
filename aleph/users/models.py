@@ -143,10 +143,11 @@ class DocumentMeta(models.Model):
 
 class PageImage(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='page_images/')
+    page_number = models.IntegerField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)  # Use URLField to store the S3 URL
 
     def __str__(self):
-        return f"Image for {self.document}"
+        return f"Image for doucment id:{self.document.id} - Page {self.page_number}"
 
 class OCRText(models.Model):
     document = models.OneToOneField(Document, on_delete=models.CASCADE)

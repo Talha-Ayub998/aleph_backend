@@ -18,6 +18,7 @@ from helpers.checksum import *
 import time
 from helpers.ocr import *
 from users.serializers import *
+import fitz  # PyMuPDF
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -166,6 +167,19 @@ class PageDocumentUploadAPIView(APIView):
                                     text=result['text'],
                                     emails=emails
                                 )
+                                pdf_document = fitz.open(temp_file_path)
+                                for page_number in range(len(pdf_document)):
+                                    page = pdf_document.load_page(page_number)
+                                    pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # Increase resolution (adjust matrix parameters as needed)
+                                    image_bytes = pixmap.tobytes()
+                                    s3_image_key = f"{unique_key}_page_{page_number + 1}.jpg"
+                                    if s3_service.upload_image_to_s3(image_bytes, bucket_name, s3_image_key):
+                                        image_url = s3_service.get_document_url(s3_file=s3_image_key, s3_bucket=bucket_name)
+                                        # Save the image URL in the database
+                                        page_image = PageImage(document=doc, page_number=page_number + 1, image_url=image_url)
+                                        page_image.save()
+                                    pixmap = None  # Clean up the pixmap object
+                                pdf_document.close()
                                 document_ids.append(doc.id)
                                 if os.path.exists(temp_file_path):
                                     os.remove(temp_file_path)

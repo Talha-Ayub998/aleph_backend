@@ -74,7 +74,7 @@ class LoginSerializer(serializers.Serializer):
 class PageImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PageImage
-        fields = ['id', 'document', 'image']
+        fields = '__all__'
 
 class PageDocumentSerializer(serializers.ModelSerializer):
     hash_value = serializers.CharField(source='documentmeta.hash_value')
