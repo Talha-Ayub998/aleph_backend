@@ -1,24 +1,19 @@
-from knox.models import AuthToken
+from django.utils import timezone
+import time
+
+from django.contrib.auth import get_user_model
 from rest_framework import generics, status
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.http import FileResponse, JsonResponse
-from django.shortcuts import get_object_or_404
-from rest_framework import generics
-from mimetypes import guess_type
-from users.ocr import perform_ocr
-from django.contrib.auth import get_user_model
-from rest_framework import status, permissions
-from .permissions import IsAdminUser
-from django.utils import timezone
+from knox.models import AuthToken
+
+from .permissions import IsAdminUser, IsReviewerUser
 from helpers.s3 import *
 from helpers.checksum import *
-import time
 from helpers.ocr import *
 from users.serializers import *
-import fitz  # PyMuPDF
+from users.tasks import process_document
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -58,7 +53,7 @@ class MultipleUserDetailsAPIView(APIView):
 
 
 class UserCreateAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -96,104 +91,40 @@ class PageDocumentUploadAPIView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = MultiplePageDocumentSerializer(data=request.data)
         if serializer.is_valid():
-            # Retrieve the project from request data
             project_id = serializer.validated_data['project_id']
             files = serializer.validated_data['files']
 
             if not project_id:
                 return Response({'error': 'Project ID is required'}, status=status.HTTP_400_BAD_REQUEST)
             try:
-                project = Project.objects.get(id=project_id)
+                Project.objects.get(id=project_id)
             except Project.DoesNotExist:
                 return Response({'error': 'Project does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-            s3_service = S3Service(
-                region_name=os.getenv('REGION'),
-                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
-            )
             bucket_name = 'aleph-s3-bucket'
+            tasks = []
 
-            document_ids = []
             for file in files:
                 file_name = file.name
                 temp_file_path = f"/tmp/{file_name}"
 
-                # Save the file locally temporarily
                 with open(temp_file_path, 'wb+') as temp_file:
                     for chunk in file.chunks():
                         temp_file.write(chunk)
 
-                try:
-                    # Extract text and emails from the document
-                    result, emails = ocr_document(temp_file_path)
-                    if result['error']:
-                        # Return a 400 Bad Request response if there is an error in processing the file
-                        return Response({'error for ocr-text': result['error']}, status=status.HTTP_400_BAD_REQUEST)
+                file_hash = calculate_checksum(temp_file_path, file_name)
+                unique_key = f"{file_hash}_{int(time.time())}"
+                if os.getenv('ENV') == 'PRODUCTION':
+                    task = process_document.delay(project_id, file_name, temp_file_path, bucket_name, unique_key)
+                    tasks.append(task.id)
+                else:
+                    tasks = process_document(project_id, file_name, temp_file_path, bucket_name, unique_key)
 
 
-                    # Calculate the checksum of the file
-                    file_hash = calculate_checksum(temp_file_path, file_name)
-                    metadata = get_file_metadata(temp_file_path)
-
-                    # Generate a unique key by appending a timestamp
-                    unique_key = f"{file_hash}_{int(time.time())}"
-
-                    # Upload to S3 using the unique key name
-                    if s3_service.upload_to_s3(temp_file_path, bucket_name, unique_key):
-                                # Save document information
-                                document_url = s3_service.get_document_url(s3_file=unique_key, s3_bucket=bucket_name)
-                                doc = Document.objects.create(file_url=document_url,
-                                                                   s3_file_name=unique_key,
-                                                                   project=project,
-                                                                   file_name=file_name)
-
-                                # Save document metadata
-                                meta = DocumentMeta.objects.create(
-                                    document=doc,
-                                    hash_value=unique_key,
-                                    name=file_name,
-                                    size_bytes=metadata['Size (bytes)'],
-                                    file_type=metadata['Type'],
-                                    is_directory=metadata['Is Directory'],
-                                    # creation_time=metadata['Creation Time'],
-                                    last_modified_time=metadata['Last Modified Time'],
-                                    last_accessed_time=metadata['Last Accessed Time']
-                                )
-
-                                # Save OCR text and emails
-                                OCRText.objects.create(
-                                    document=doc,
-                                    text=result['text'],
-                                    emails=emails
-                                )
-                                pdf_document = fitz.open(temp_file_path)
-                                for page_number in range(len(pdf_document)):
-                                    page = pdf_document.load_page(page_number)
-                                    pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # Increase resolution (adjust matrix parameters as needed)
-                                    image_bytes = pixmap.tobytes()
-                                    s3_image_key = f"{unique_key}_page_{page_number + 1}.jpg"
-                                    if s3_service.upload_image_to_s3(image_bytes, bucket_name, s3_image_key):
-                                        image_url = s3_service.get_document_url(s3_file=s3_image_key, s3_bucket=bucket_name)
-                                        # Save the image URL in the database
-                                        page_image = PageImage(document=doc, page_number=page_number + 1, image_url=image_url)
-                                        page_image.save()
-                                    pixmap = None  # Clean up the pixmap object
-                                pdf_document.close()
-                                document_ids.append(doc.id)
-                                if os.path.exists(temp_file_path):
-                                    os.remove(temp_file_path)
-                    else:
-                        if os.path.exists(temp_file_path):
-                            os.remove(temp_file_path)
-                        return Response({'error': f'Failed to upload {file_name} to S3'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                except Exception as e:
-                    if os.path.exists(temp_file_path):
-                        os.remove(temp_file_path)
-                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            return Response({'document_ids': document_ids}, status=status.HTTP_201_CREATED)
+            return Response({'tasks': tasks}, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class DocumentImageURLListView(APIView):
     permission_classes = [IsAuthenticated]
 
