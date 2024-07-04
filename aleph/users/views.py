@@ -123,6 +123,8 @@ class PageDocumentUploadAPIView(APIView):
 
             return Response({'tasks': tasks}, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      
+
 class DocumentImageURLListView(APIView):
     permission_classes = [IsAuthenticated]
 
