@@ -1,24 +1,18 @@
-from knox.models import AuthToken
+from django.utils import timezone
+import time
+
+from django.contrib.auth import get_user_model
 from rest_framework import generics, status
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.http import FileResponse, JsonResponse
-from django.shortcuts import get_object_or_404
-from rest_framework import generics
-from mimetypes import guess_type
-from users.ocr import perform_ocr
-from django.contrib.auth import get_user_model
-from rest_framework import status, permissions
-from .permissions import IsAdminUser
-from django.utils import timezone
+from knox.models import AuthToken
+
+from .permissions import IsAdminUser, IsReviewerUser
 from helpers.s3 import *
 from helpers.checksum import *
-import time
 from helpers.ocr import *
 from users.serializers import *
-import fitz  # PyMuPDF
 from users.tasks import process_document
 
 class LoginAPIView(generics.GenericAPIView):
@@ -59,7 +53,7 @@ class MultipleUserDetailsAPIView(APIView):
 
 
 class UserCreateAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
