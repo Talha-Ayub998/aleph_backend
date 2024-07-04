@@ -114,9 +114,12 @@ class PageDocumentUploadAPIView(APIView):
 
                 file_hash = calculate_checksum(temp_file_path, file_name)
                 unique_key = f"{file_hash}_{int(time.time())}"
+                if os.getenv('ENV') == 'PRODUCTION':
+                    task = process_document.delay(project_id, file_name, temp_file_path, bucket_name, unique_key)
+                    tasks.append(task.id)
+                else:
+                    tasks = process_document(project_id, file_name, temp_file_path, bucket_name, unique_key)
 
-                task = process_document.delay(project_id, file_name, temp_file_path, bucket_name, unique_key)
-                tasks.append(task.id)
 
             return Response({'tasks': tasks}, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

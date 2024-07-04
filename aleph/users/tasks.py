@@ -25,8 +25,8 @@ def process_document(project_id, file_name, temp_file_path, bucket_name, unique_
 
     # Extract text and emails from the document
     result, emails = ocr_document(temp_file_path)
-    if result['error']:
-        return {'error': result['error']}
+    # if result['error']:
+    #     return {'error': result['error']}
 
     # Calculate the checksum of the file
     metadata = get_file_metadata(temp_file_path)
@@ -55,7 +55,7 @@ def process_document(project_id, file_name, temp_file_path, bucket_name, unique_
         # Save OCR text and emails
         OCRText.objects.create(
             document=doc,
-            text=result['text'],
+            text = result['text'] if not result.get('error') else 'OCR NOT SUPPORTED',
             emails=emails
         )
         try:
