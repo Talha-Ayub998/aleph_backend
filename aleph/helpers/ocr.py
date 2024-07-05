@@ -74,7 +74,7 @@ def extract_text_from_txt(txt_path):
             return file.read()
     except Exception as e:
         raise RuntimeError(f"Failed to extract text from TXT file: {str(e)}")
-    
+
 
 def extract_text_from_csv(file_path):
     """
@@ -135,15 +135,17 @@ def ocr_document(file_path):
     Perform OCR on the given document file.
     """
     try:
+        emails = []
         result = extract_text_from_file(file_path)
-        emails = extract_emails(result['text'])
+        if result.get('text'):
+            emails = extract_emails(result['text'])
         return result, emails
     except Exception as e:
         raise RuntimeError(f"OCR failed for document: {str(e)}")
 
 if __name__ == "__main__":
     document_path = 'DEVLOGIC Experience letter.docx'
-    
+
     try:
         text, emails = ocr_document(document_path)
         print("Extracted Text:\n", text)
