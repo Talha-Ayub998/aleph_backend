@@ -102,6 +102,13 @@ class OCRTextSerializer(serializers.ModelSerializer):
         model = OCRText
         fields = ['document', 'text', 'emails']
 
+    def to_representation(self, instance):
+        # If 'instance' is a dictionary (from Elasticsearch), return it directly
+        if isinstance(instance, dict):
+            return instance
+        # Otherwise, serialize the model instance as usual
+        return super().to_representation(instance)
+
 class MultiplePageDocumentSerializer(serializers.Serializer):
     files = serializers.ListField(
         child=serializers.FileField()

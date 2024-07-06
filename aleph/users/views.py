@@ -127,21 +127,27 @@ class PageDocumentUploadAPIView(APIView):
 
 class OCRTextSearchAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        try:
-            query = request.GET.get('q')
-            if not query:
-                return Response({"error": "No query provided"}, status=status.HTTP_400_BAD_REQUEST)
+        query = request.GET.get('q')
+        if not query:
+            return Response({"error": "No query provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-            search_results = OCRTextDocument.search().query("match", text=query)
-            #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text', 'emails'])
-            #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
-            #search_results = OCRTextDocument.search().filter("term", status="active").query("match", text=query)
+        search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
+        serialized_results = []
 
-            serialized_results = [OCRTextSerializer(result.to_dict(), context={'request': request}).data for result in search_results]
+        for result in search_results:
+            try:
+                if hasattr(result, 'to_dict'):  # Check if the result has a to_dict method (Elasticsearch result)
+                    data_dict = result.to_dict()
+                    serialized_data = OCRTextSerializer(data_dict).data
+                else:  # Assume it's already a model instance
+                    serialized_data = OCRTextSerializer(result).data
 
-            return Response(serialized_results, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                serialized_results.append(serialized_data)
+            except Exception as e:
+                # Handle any exceptions or log errors as needed
+                print(f"Error processing result: {e}")
+
+        return Response(serialized_results, status=status.HTTP_200_OK)
 
 class DocumentImageURLListView(APIView):
     permission_classes = [IsAuthenticated]
