@@ -131,7 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': 'ec2-23-23-53-109.compute-1.amazonaws.com:9200'
+        'hosts': 'http://ec2-23-23-53-109.compute-1.amazonaws.com:9200'
     },
 }
 
