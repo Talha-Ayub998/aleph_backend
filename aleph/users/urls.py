@@ -21,5 +21,6 @@ urlpatterns = [
     path('api/approve/', ApproveUserAPIView.as_view(), name='approve-user'),
     path('api/all/potential/users/', MultiplePotentialDetailsAPIView.as_view(), name='all-potential-user-details'),
     path('api/companies/create/', CompanyCreateAPIView.as_view(), name='company-create'),
+    path('api/search-ocrtext/', OCRTextSearchAPIView.as_view(), name='search-ocrtext'),
 
 ]

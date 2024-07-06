@@ -128,6 +128,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'ec2-23-23-53-109.compute-1.amazonaws.com:9200'
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
