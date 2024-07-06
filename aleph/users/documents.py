@@ -68,7 +68,7 @@ class OCRTextDocument(ElasticsearchDocument):
         model = OCRText
         fields = [
             'text',
-            'emails',
+            #'emails',
         ]
 
     document = fields.ObjectField(properties={
