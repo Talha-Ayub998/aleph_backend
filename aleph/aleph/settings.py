@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'knox',
     'rest_framework',
-    'users'
+    'users',
+    'django_elasticsearch_dsl',
 ]
 
 MIDDLEWARE = [
