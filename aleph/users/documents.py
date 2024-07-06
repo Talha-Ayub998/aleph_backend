@@ -74,6 +74,8 @@ class OCRTextDocument(ElasticsearchDocument):
     document = fields.ObjectField(properties={
         'file_name': fields.TextField(),
         'file_url': fields.TextField(),
+        'project_id': fields.IntegerField(),  # Adding project ID field
+        'document_id': fields.IntegerField(),  # Adding document ID field
     })
 
     def prepare_document(self, instance):
@@ -81,6 +83,8 @@ class OCRTextDocument(ElasticsearchDocument):
         return {
             'file_name': document_instance.file_name,
             'file_url': document_instance.file_url,
+            'project_id': document_instance.project_id,
+            'document_id': document_instance.id,
         }
 
     def __str__(self):
