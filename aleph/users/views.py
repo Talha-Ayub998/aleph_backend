@@ -132,7 +132,8 @@ class OCRTextSearchAPIView(APIView):
             return Response({"error": "No query provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         #search_results = OCRTextDocument.search().query("match", text=query)  # Adjust field as per your search needs
-        search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text', 'emails'])
+        #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text', 'emails'])
+        search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
         #search_results = OCRTextDocument.search().filter("term", status="active").query("match", text=query)
 
         serialized_results = [OCRTextSerializer(result.to_dict(), context={'request': request}).data for result in search_results]
