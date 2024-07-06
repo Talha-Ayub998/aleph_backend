@@ -127,18 +127,21 @@ class PageDocumentUploadAPIView(APIView):
 
 class OCRTextSearchAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        query = request.GET.get('q')
-        if not query:
-            return Response({"error": "No query provided"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            query = request.GET.get('q')
+            if not query:
+                return Response({"error": "No query provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        search_results = OCRTextDocument.search().query("match", text=query)
-        #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text', 'emails'])
-        #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
-        #search_results = OCRTextDocument.search().filter("term", status="active").query("match", text=query)
+            search_results = OCRTextDocument.search().query("match", text=query)
+            #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text', 'emails'])
+            #search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
+            #search_results = OCRTextDocument.search().filter("term", status="active").query("match", text=query)
 
-        serialized_results = [OCRTextSerializer(result.to_dict(), context={'request': request}).data for result in search_results]
+            serialized_results = [OCRTextSerializer(result.to_dict(), context={'request': request}).data for result in search_results]
 
-        return Response(serialized_results, status=status.HTTP_200_OK)
+            return Response(serialized_results, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DocumentImageURLListView(APIView):
     permission_classes = [IsAuthenticated]
