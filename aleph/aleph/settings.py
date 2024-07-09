@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'knox',
     'rest_framework',
     'users',
-    'django_elasticsearch_dsl',
+    # 'django_elasticsearch_dsl',
 ]
 
 MIDDLEWARE = [
@@ -129,11 +129,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': 'http://ec2-23-23-53-109.compute-1.amazonaws.com:9200'
-    },
-}
+# ELASTICSEARCH_DSL = {
+#     'default': {
+#         'hosts': 'http://ec2-23-23-53-109.compute-1.amazonaws.com:9200'
+#     },
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/

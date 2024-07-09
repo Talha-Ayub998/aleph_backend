@@ -14,7 +14,7 @@ from helpers.checksum import *
 from helpers.ocr import *
 from users.serializers import *
 from users.tasks import process_document
-from users.documents import *
+# from users.documents import *
 
 class LoginAPIView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -133,6 +133,8 @@ class OCRTextSearchAPIView(APIView):
 
         search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
         serialized_results = []
+        search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
+        search_results = OCRTextDocument.search().query("term", text=query)
 
         for result in search_results:
             try:
