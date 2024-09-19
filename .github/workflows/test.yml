@@ -51,16 +51,21 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
 
-      # Deploy only if on push to main (not pull request)
+      # Deploy to EC2
       - name: Deploy to EC2
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
-            SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-            EC2_HOST: ${{ secrets.EC2_HOST }}
-            EC2_USER: ${{ secrets.EC2_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-            echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa  # Remove carriage return characters
-            chmod 600 id_rsa
-            ssh-keygen -p -m PEM -f id_rsa  # Convert to PEM format
-            rsync -avz --exclude='.git' -e "ssh -i id_rsa" ./ $EC2_USER@$EC2_HOST:/home/ubuntu/aleph_backend/aleph
-            ssh -i id_rsa $EC2_USER@$EC2_HOST "cd /home/ubuntu/aleph_backend/aleph && ./deploy.sh"
+          # Save the private key, removing potential carriage return characters
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
+          chmod 600 id_rsa
+
+          # Test SSH connection to verify key is valid
+          ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "echo SSH connection successful"
+
+          # Rsync and deploy
+          rsync -avz --exclude='.git' -e "ssh -i id_rsa" ./ $EC2_USER@$EC2_HOST:/home/ubuntu/aleph_backend/aleph
+          ssh -i id_rsa $EC2_USER@$EC2_HOST "cd /home/ubuntu/aleph_backend/aleph && ./deploy.sh"
