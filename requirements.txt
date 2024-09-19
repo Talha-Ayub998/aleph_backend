@@ -1,0 +1,13 @@
+boto3==1.25.2
+Django==4.0.6
+django_elasticsearch_dsl==8.0
+djangorestframework==3.14.0
+docx==0.2.4
+fitz==0.0.1.dev2
+fs==2.4.16
+knox==0.1.14
+Pillow==9.3.0
+Pillow==10.4.0
+pytesseract==0.3.10
+python-dotenv==1.0.1
+python_magic==0.4.27
