@@ -1,0 +1,10 @@
+testing	 Source URL	Destination URL	Bundle Quantity
+user@mail.example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+user@example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+user+something@example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+first.last@example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+user123@example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+user@example-domain.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+user@subdomain.example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+user_name@example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
+a@example.com	https://www.walmart.com/ip/477819576	https://www.amazon.com/dp/B07934S6WK	1
