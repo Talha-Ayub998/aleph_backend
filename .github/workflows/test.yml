@@ -1,6 +1,5 @@
 name: Run Tests
 
-# Trigger the workflow on push or pull request to the main branch
 on:
   push:
     branches:
@@ -9,28 +8,24 @@ on:
     branches:
       - main
 
-# Define the jobs to run in the workflow
 jobs:
   test:
-    # The environment to run the job in
     runs-on: ubuntu-latest
 
-    # Steps to execute in the job
     steps:
-      # Check out the repository
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      # Set up Python
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: 3.10.5  # Specify the Python version
+          python-version: 3.10.5  # Adjust Python version if needed
 
       # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install pytest  # Ensure pytest is installed
           pip install -r requirements.txt
 
       # Run the tests
