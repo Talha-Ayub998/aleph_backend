@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'aleph.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("DATABASE_NAME"),  
+        "NAME": os.getenv("DATABASE_NAME"),
         "USER": os.getenv("SQL_DB_USER"),
         "PASSWORD": os.getenv("SQL_DB_PASS"),
         "HOST": "localhost",

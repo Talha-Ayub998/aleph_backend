@@ -133,6 +133,8 @@ class OCRTextSearchAPIView(APIView):
 
         search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
         serialized_results = []
+        # search_results = OCRTextDocument.search().query("multi_match", query=query, fields=['text'])
+        # search_results = OCRTextDocument.search().query("term", text=query)
 
         for result in search_results:
             try:
