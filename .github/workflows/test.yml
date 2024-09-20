@@ -34,9 +34,18 @@ jobs:
         run: pytest
         continue-on-error: false  # Ensure tests stop the deployment if they fail
 
-      # Deploy locally (Assuming you have a deploy.sh script for local deployment)
-      - name: Deploy Locally
+      # Deploy only if on push to main (not pull request)
+      - name: Deploy to EC2
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{ secrets.EC2_HOST }}
+            USER_NAME: ${{ secrets.EC2_USER }}
         run: |
-          cd /Users/macbook-727/Documents/aleph_backend/aleph
-          ./deploy.sh
+            # Create the private key and set proper permissions
+            echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+
+            # SSH into EC2 and run the deploy script
+            ssh -o StrictHostKeyChecking=no -i private_key "${USER_NAME}@${HOSTNAME}" "
+            cd /home/ubuntu/aleph_backend/aleph && ./deploy.sh
+            "
